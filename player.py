@@ -3,9 +3,11 @@ import numpy as np
 from scipy import misc
 from time import sleep
 from gi.repository import Gdk
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Key, Controller, Listener
 from os import listdir
 from os.path import isfile, join
+
+TRAIN = False
 
 
 can_left_images = []
@@ -17,13 +19,12 @@ def screenshot():
     pb.savev("screenshot.png", "png", (), ())
 
 def get_right():
-
     f = misc.imread('screenshot.png')
-    return [x[170:270] for x in f[340:400]]
+    return [x[170:270] for x in f[300:360]]
 
 def get_left():
     f = misc.imread('screenshot.png')
-    return [x[10:110] for x in f[340:400]]
+    return [x[10:110] for x in f[300:360]]
 
 def read_right():
     global can_right_images
@@ -57,13 +58,22 @@ def can_right(actual):
 
 keyboard = Controller()
 
-# c = 0
-# while True:
-#     screenshot()
-#     c += 1
-#     misc.imsave('left{}.png'.format(c), get_left())
-#     misc.imsave('right{}.png'.format(c), get_right())
-#     sleep(0.2)
+
+c = 0
+def on_press(key):
+    global c
+    screenshot()
+    c += 1
+    if key == Key.left:
+        misc.imsave('can_left/left{}.png'.format(c), get_left())
+    elif key == Key.right:
+        misc.imsave('can_right/right{}.png'.format(c), get_right())
+
+
+if TRAIN:
+    with Listener(on_press=on_press) as listener:
+        listener.join()
+
 
 
 read_left()
@@ -71,7 +81,7 @@ read_right()
 
 sleep(5)
 
-sleep_time = 0.1
+sleep_time = 0.16
 
 
 rest_left = []
@@ -98,13 +108,3 @@ while True:
         rest_right.append(actual_right)
         
     sleep(sleep_time)
-
-# c = 0
-# for image in can_left_images:
-#     misc.imsave('./can_left/{}.png'.format(c), image)
-#     c += 1
-
-# c = 0
-# for image in can_right_images:
-#     misc.imsave('./can_right/{}.png'.format(c), image)
-#     c += 1
